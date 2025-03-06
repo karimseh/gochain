@@ -2,7 +2,7 @@
 /bin/
 
 # Database/Storage
-.blocks/  # BadgerDB data
+.blocks/ 
 
 # IDE
 /.idea/
