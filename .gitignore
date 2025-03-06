@@ -1,11 +1,24 @@
+# Binaries
 /bin/
+
+# Database/Storage
+.blocks/  # BadgerDB data
+
+# IDE
 /.idea/
-/vendor/
-*.log
-*.env
-.DS_Store
-gochain
+.vscode/
+
+# Node.js (remove if unused)
 node_modules/
 package-lock.json
 package.json
-.blocks/
+
+# Logs/Env
+*.log
+*.env
+
+# OS files
+.DS_Store
+
+# Go vendor
+/vendor/
