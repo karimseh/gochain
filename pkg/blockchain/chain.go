@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/karimseh/gochain/pkg/types"
 )
 
 type Blockchain struct {
@@ -59,8 +60,8 @@ func (bc *Blockchain) initialize() error {
 	})
 }
 
-func createGenesisBlock() *Block {
-	genesis := &Block{
+func createGenesisBlock() *types.Block {
+	genesis := &types.Block{
 		Index:     0,
 		Timestamp: time.Now().Unix(),
 		Data:      []byte("GENESIS BLOCK"),
