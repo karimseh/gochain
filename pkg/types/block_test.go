@@ -1,6 +1,5 @@
 package types_test
 
-
 import (
 	"testing"
 
@@ -60,7 +59,6 @@ func TestCalculateHash(t *testing.T) {
 }
 
 func TestMerkleRoot(t *testing.T) {
-
 
 	t.Run("Single Transaction", func(t *testing.T) {
 		tx := dummyTransaction()
@@ -123,7 +121,7 @@ func dummyTransaction() *types.Transaction {
 	tx := &types.Transaction{
 		From:    "from",
 		To:      "to",
-		Ammount:  100,
+		Ammount: 100,
 		Nonce:   1,
 		PubKey:  []byte("pubkey"),
 		Hash:    crypto.HashData([]byte("dummy")),

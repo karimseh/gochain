@@ -12,12 +12,9 @@ import (
 )
 
 func setupBlockchain(t *testing.T) (*blockchain.Blockchain, func()) {
-	
 
 	bc, err := blockchain.NewBlockchain()
 	require.NoError(t, err)
-
-	
 
 	return bc, func() {
 		bc.CloseDB()
@@ -74,7 +71,6 @@ func TestMineBlock(t *testing.T) {
 		assert.Equal(t, minerAddr, coinbase.To)
 		assert.Equal(t, uint64(types.CoinbaseAmount), coinbase.Ammount)
 	})
-
 
 	t.Run("Transaction Pool Cleared", func(t *testing.T) {
 		bc, cleanup := setupBlockchain(t)

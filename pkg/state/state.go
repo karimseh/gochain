@@ -173,14 +173,14 @@ func (s *State) CalculateStateRoot() ([]byte, error) {
 
 func (s *State) getAllAccounts() ([]*types.Account, error) {
 	var accounts []*types.Account
-	
+
 	err := s.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.Prefix = []byte("account-")
-		
+
 		it := txn.NewIterator(opts)
 		defer it.Close()
-		
+
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
 			err := item.Value(func(v []byte) error {
@@ -197,7 +197,7 @@ func (s *State) getAllAccounts() ([]*types.Account, error) {
 		}
 		return nil
 	})
-	
+
 	return accounts, err
 }
 func serializeAccount(acc *types.Account) ([]byte, error) {

@@ -73,25 +73,25 @@ func VerifyMerkleRoot(leaf []byte, proof [][]byte, root []byte) bool {
 }
 
 func PublicKeyToBytes(pub *ecdsa.PublicKey) []byte {
-    return append(pub.X.Bytes(), pub.Y.Bytes()...)
+	return append(pub.X.Bytes(), pub.Y.Bytes()...)
 }
 
 func BytesToPublicKey(data []byte) (*ecdsa.PublicKey, error) {
-    if len(data) != 64 {
-        return nil, fmt.Errorf("invalid public key length")
-    }
-    
-    curve := elliptic.P256()
-    x := new(big.Int).SetBytes(data[:32])
-    y := new(big.Int).SetBytes(data[32:64])
-    
-    if !curve.IsOnCurve(x, y) {
-        return nil, fmt.Errorf("invalid public key coordinates")
-    }
-    
-    return &ecdsa.PublicKey{
-        Curve: curve,
-        X:     x,
-        Y:     y,
-    }, nil
+	if len(data) != 64 {
+		return nil, fmt.Errorf("invalid public key length")
+	}
+
+	curve := elliptic.P256()
+	x := new(big.Int).SetBytes(data[:32])
+	y := new(big.Int).SetBytes(data[32:64])
+
+	if !curve.IsOnCurve(x, y) {
+		return nil, fmt.Errorf("invalid public key coordinates")
+	}
+
+	return &ecdsa.PublicKey{
+		Curve: curve,
+		X:     x,
+		Y:     y,
+	}, nil
 }

@@ -49,7 +49,7 @@ func TestGetAccount(t *testing.T) {
 		require.NoError(t, s.SaveAccount(acc))
 
 		// First get (from DB)
-		
+
 		a1, err := s.GetAccount("test")
 		assert.NoError(t, err)
 		assert.Equal(t, uint64(100), a1.Balance)
@@ -68,8 +68,6 @@ func TestGetAccount(t *testing.T) {
 		assert.Equal(t, uint64(0), acc.Nonce)
 	})
 }
-
-
 
 func TestGetBalance(t *testing.T) {
 	s, cleanup := setupState(t)
@@ -244,8 +242,4 @@ func TestEdgeCases(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-
-
-
 }
-

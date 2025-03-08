@@ -105,8 +105,6 @@ func (bc *Blockchain) AddBlock(block *types.Block) error {
 	}
 	block.StateRoot = stateRoot
 
-
-
 	err = bc.DB.Update(func(txn *badger.Txn) error {
 		if err := txn.Set(block.Hash, block.Serialize()); err != nil {
 			return err

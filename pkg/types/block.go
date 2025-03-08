@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/karimseh/gochain/pkg/crypto"
 )
 
 type Block struct {
+	mu           sync.RWMutex
 	Header       BlockHeader    `json:"header"`
 	Transactions []*Transaction `json:"transactions"`
 	MerkleRoot   []byte         `json:"merkle_root"`
@@ -24,9 +26,6 @@ type BlockHeader struct {
 	Difficulty int    `json:"difficulty"`
 	Miner      string `json:"miner"`
 }
-
-
-
 
 func NewBlock(index uint64, transactions []*Transaction, parentHash []byte, miner string) *Block {
 	header := BlockHeader{
@@ -45,7 +44,26 @@ func NewBlock(index uint64, transactions []*Transaction, parentHash []byte, mine
 	return block
 }
 
+func (b *Block) SetNonce(nonce uint64) {
+    b.mu.Lock()
+    defer b.mu.Unlock()
+    b.Header.Nonce = nonce
+}
+
+func (b *Block) GetDifficulty() int {
+    b.mu.RLock()
+    defer b.mu.RUnlock()
+    return b.Header.Difficulty
+}
+func (b *Block) SetDifficulty(diff int) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.Header.Difficulty = diff
+}
+
 func (b *Block) Validate() error {
+	b.mu.RLock()
+    defer b.mu.RUnlock()
 	// Temporary clear existing hash for validation
 	storedHash := b.Hash
 	b.Hash = nil
@@ -80,11 +98,12 @@ func (b *Block) Validate() error {
 		return fmt.Errorf("invalid merkle root")
 	}
 
-
 	return nil
 }
 
 func (b *Block) CalculateHash() []byte {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
 	headerData, _ := crypto.Serialize(b.Header)
 	return crypto.HashData(headerData, b.MerkleRoot, b.StateRoot)
 }
@@ -96,7 +115,6 @@ func CalculateMerkleRoot(txs []*Transaction) []byte {
 	}
 	return crypto.BuildMerkleRoot(hashes)
 }
-
 
 func (b *Block) Serialize() []byte {
 	data, _ := json.Marshal(b)

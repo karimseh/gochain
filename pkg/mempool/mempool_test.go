@@ -1,8 +1,8 @@
 package mempool_test
 
 import (
-	"testing"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/karimseh/gochain/pkg/crypto"
@@ -16,7 +16,7 @@ import (
 func newValidTx() *types.Transaction {
 	w := wallet.NewWallet()
 	tx := types.NewTransaction(w.Address, "recipient", 100, 1, crypto.PublicKeyToBytes(w.PublicKey))
-	tx.Sign(w)
+	_ = tx.Sign(w)
 	return tx
 }
 
@@ -91,7 +91,7 @@ func TestTxPool_RemoveTxs(t *testing.T) {
 		newValidTx(),
 		newValidTx(),
 	}
-	
+
 	for _, tx := range txs {
 		require.NoError(t, pool.AddTx(tx))
 	}

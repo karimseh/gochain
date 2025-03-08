@@ -13,8 +13,6 @@ import (
 type PubKey *ecdsa.PublicKey
 type PrivateKey *ecdsa.PrivateKey
 
-
-
 func HashData(data ...[]byte) []byte {
 	hasher := sha256.New()
 
@@ -52,7 +50,7 @@ func GenerateKeyPair() (*ecdsa.PrivateKey, error) {
 
 func NewPrivateKey(pubKeyBytes []byte, privKeyBytes []byte) *ecdsa.PrivateKey {
 	curve := elliptic.P256()
-	
+
 	return &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
