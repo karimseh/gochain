@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,24 +10,39 @@ import (
 )
 
 type Block struct {
+	Header       BlockHeader    `json:"header"`
+	Transactions []*Transaction `json:"transactions"`
+	MerkleRoot   []byte         `json:"merkle_root"`
+	StateRoot    []byte         `json:"state_root"`
+	Hash         []byte         `json:"hash"`
+}
+type BlockHeader struct {
+	ParentHash []byte `json:"parentHash"`
 	Index      uint64 `json:"index"`
 	Timestamp  int64  `json:"timestamp"`
-	Data       []byte `json:"data"`
-	PrevHash   []byte `json:"prevHash"`
-	Hash       []byte `json:"hash"`
 	Nonce      uint64 `json:"nonce"`
 	Difficulty int    `json:"difficulty"`
+	Miner      string `json:"miner"`
 }
 
-func (b *Block) Serialize() []byte {
-	data, _ := json.Marshal(b)
-	return data
-}
 
-func DeserializeBlock(data []byte) (*Block, error) {
-	var block Block
-	err := json.Unmarshal(data, &block)
-	return &block, err
+
+
+func NewBlock(index uint64, transactions []*Transaction, parentHash []byte, miner string) *Block {
+	header := BlockHeader{
+		Index:      index,
+		Timestamp:  time.Now().Unix(),
+		ParentHash: parentHash,
+		Miner:      miner,
+	}
+
+	block := &Block{
+		Header:       header,
+		Transactions: transactions,
+		MerkleRoot:   CalculateMerkleRoot(transactions),
+	}
+	block.Hash = block.CalculateHash()
+	return block
 }
 
 func (b *Block) Validate() error {
@@ -36,14 +50,7 @@ func (b *Block) Validate() error {
 	storedHash := b.Hash
 	b.Hash = nil
 
-	calculatedHash := crypto.HashBlock(
-		b.Index,
-		b.Timestamp,
-		b.Data,
-		b.PrevHash,
-		b.Difficulty,
-		b.Nonce,
-	)
+	calculatedHash := b.CalculateHash()
 
 	b.Hash = storedHash // Restore original hash
 
@@ -54,33 +61,49 @@ func (b *Block) Validate() error {
 		)
 	}
 
-	if !crypto.ValidateHash(storedHash, b.Difficulty) {
+	if !crypto.ValidateHash(storedHash, b.Header.Difficulty) {
 		return fmt.Errorf("hash doesn't meet difficulty requirements")
 	}
+	if b.Header.Miner == "" {
+		return fmt.Errorf("invalid miner address")
+	}
+	if b.Header.Timestamp == 0 {
+		return fmt.Errorf("invalid timestamp")
+	}
+	if b.Header.Index == 0 {
+		return fmt.Errorf("invalid block index")
+	}
+	if b.Header.ParentHash == nil {
+		return fmt.Errorf("invalid parent hash")
+	}
+	if b.MerkleRoot == nil {
+		return fmt.Errorf("invalid merkle root")
+	}
+
 
 	return nil
 }
 
-func NewBlock(index uint64, data []byte, prevHash []byte, difficulty int) *Block {
-	return &Block{
-		Index:      index,
-		Timestamp:  time.Now().Unix(),
-		Data:       data,
-		PrevHash:   prevHash,
-		Difficulty: difficulty,
-		// Hash and Nonce will be set during mining
-	}
+func (b *Block) CalculateHash() []byte {
+	headerData, _ := crypto.Serialize(b.Header)
+	return crypto.HashData(headerData, b.MerkleRoot, b.StateRoot)
 }
 
-func (b *Block) CalculateHash() []byte {
-	headers := fmt.Sprintf("%d%d%x%x%d%d",
-		b.Index,
-		b.Timestamp,
-		b.Data,
-		b.PrevHash,
-		b.Nonce,
-		b.Difficulty,
-	)
-	hash := sha256.Sum256([]byte(headers))
-	return hash[:]
+func CalculateMerkleRoot(txs []*Transaction) []byte {
+	var hashes [][]byte
+	for _, tx := range txs {
+		hashes = append(hashes, tx.Hash)
+	}
+	return crypto.BuildMerkleRoot(hashes)
+}
+
+
+func (b *Block) Serialize() []byte {
+	data, _ := json.Marshal(b)
+	return data
+}
+func DeserializeBlock(data []byte) (*Block, error) {
+	var block Block
+	err := json.Unmarshal(data, &block)
+	return &block, err
 }

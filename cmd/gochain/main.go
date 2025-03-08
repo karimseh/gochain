@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/karimseh/gochain/pkg/blockchain"
 	"github.com/karimseh/gochain/pkg/types"
+	"github.com/karimseh/gochain/pkg/wallet"
 )
 
+var bc *blockchain.Blockchain
+
 func main() {
-	bc, err := blockchain.NewBlockchain()
+	var err error
+	bc, err = blockchain.NewBlockchain()
 	if err != nil {
 		log.Fatalf("Failed to initialize blockchain: %v", err)
 	}
@@ -22,76 +25,76 @@ func main() {
 		return
 	}
 
+	// Handle commands that need continuous operation
 	switch os.Args[1] {
+	case "createwallet":
+		handleCreateWallet()
+
+	case "balance":
+		handleBalance()
 	case "status":
-		handleStatus(bc)
-	case "mine":
-		if len(os.Args) < 3 {
-			log.Fatal("Usage: mine <data>")
-		}
-		data := os.Args[2]
-		err := bc.MineBlock([]byte(data))
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("New block mined!")
-		handleStatus(bc)
+		handleStatus()
 	case "printchain":
-		handlePrintChain(bc)
+		handlePrintChain()
 	default:
 		printUsage()
-
 	}
-
 }
 
-func handleStatus(bc *blockchain.Blockchain) {
-	height := bc.GetHeight()
-	lastBlock, err := bc.GetBlock(bc.LastHash)
+func handleCreateWallet() {
+	w := wallet.NewWallet()
+
+	if err := w.SaveToFile(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("New wallet created:\nAddress: %s\n", w.Address)
+}
+
+func handleBalance() {
+	if len(os.Args) < 3 {
+		log.Fatal("Usage: balance <address>")
+	}
+	address := os.Args[2]
+
+	balance, err := bc.State.GetBalance(address)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	genesis, err := bc.GetBlockByHeight(0)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Printf("Balance for %s: %d\n", address, balance)
+}
+
+func handleStatus() {
+	lastBlock := bc.GetLastBlock()
+	pending := bc.Mempool.PendingCount()
 
 	fmt.Println("=== Blockchain Status ===")
-	fmt.Printf("Chain Height: %d\n", height)
-	fmt.Printf("Genesis Hash: %x\n", genesis.Hash)
+	fmt.Printf("Chain Height: %d\n", bc.GetHeight())
 	fmt.Printf("Last Block Hash: %x\n", lastBlock.Hash)
-	fmt.Printf("Last Block Nonce: %d\n", lastBlock.Nonce)
-	fmt.Printf("Difficulty: %d\n", lastBlock.Difficulty)
+	fmt.Printf("Pending Transactions: %d\n", pending)
 }
-func handlePrintChain(bc *blockchain.Blockchain) {
-	fmt.Println("\n=== Blockchain Contents ===")
 
+func handlePrintChain() {
+	fmt.Println("=== Blockchain Contents ===")
 	err := bc.IterateBlocks(func(block *types.Block) error {
-		printBlock(block)
+		fmt.Printf("\nBlock %d\n", block.Header.Index)
+		fmt.Println("---------------------")
+		fmt.Printf("Hash: %x\n", block.Hash)
+		fmt.Printf("Miner: %s\n", block.Header.Miner)
+		fmt.Printf("Transactions: %d\n", len(block.Transactions))
+		fmt.Println("---------------------")
 		return nil
 	})
-
 	if err != nil {
-		log.Fatalf("Error reading chain: %v", err)
+		log.Fatal(err)
 	}
-}
-func printBlock(block *types.Block) {
-	fmt.Printf("\nBlock %d\n", block.Index)
-	fmt.Println("---------------------")
-	fmt.Printf("Timestamp:  %s\n", time.Unix(block.Timestamp, 0).Format(time.RFC3339))
-	fmt.Printf("Data:       %s\n", string(block.Data))
-	fmt.Printf("Prev Hash:  %x\n", block.PrevHash)
-	fmt.Printf("Hash:       %x\n", block.Hash)
-	fmt.Printf("Nonce:      %d\n", block.Nonce)
-	fmt.Printf("Difficulty: %d\n", block.Difficulty)
-	fmt.Println("---------------------")
 }
 
 func printUsage() {
+	fmt.Println("GoChain CLI - Account-Based Blockchain")
 	fmt.Println("Usage:")
-	fmt.Println("  status      - Show blockchain status")
-	fmt.Println("  mine <data> - Mine new block with data")
-	fmt.Println("  printchain  - Print all blocks")
-
+	fmt.Println("  createwallet          - Generate new wallet")
+	fmt.Println("  balance <address>     - Check account balance")
+	fmt.Println("  status                - Show blockchain status")
+	fmt.Println("  printchain            - Display all blocks")
 }

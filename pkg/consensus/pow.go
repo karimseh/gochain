@@ -14,10 +14,8 @@ type ProofOfWork struct {
 }
 
 func NewProofOfWork(b *types.Block) *ProofOfWork {
-
-	return &ProofOfWork{
-		Block: b,
-	}
+	b.Header.Difficulty = TargetBits
+	return &ProofOfWork{Block: b}
 }
 
 func (pow *ProofOfWork) Run() (uint64, []byte) {
@@ -25,16 +23,10 @@ func (pow *ProofOfWork) Run() (uint64, []byte) {
 	var hash []byte
 
 	for nonce = 0; ; nonce++ {
-		hash = crypto.HashBlock(
-			pow.Block.Index,
-			pow.Block.Timestamp,
-			pow.Block.Data,
-			pow.Block.PrevHash,
-			pow.Block.Difficulty,
-			nonce,
-		)
+		pow.Block.Header.Nonce = nonce
+		hash = pow.Block.CalculateHash()
 
-		if crypto.ValidateHash(hash, pow.Block.Difficulty) {
+		if crypto.ValidateHash(hash, pow.Block.Header.Difficulty) {
 			break
 		}
 	}

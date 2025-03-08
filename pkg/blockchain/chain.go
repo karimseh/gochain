@@ -1,15 +1,22 @@
 package blockchain
 
 import (
-	"time"
+	"sync"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/karimseh/gochain/pkg/mempool"
+	"github.com/karimseh/gochain/pkg/state"
 	"github.com/karimseh/gochain/pkg/types"
 )
 
 type Blockchain struct {
 	DB       *badger.DB
+	State    *state.State
+	Mempool  *mempool.TxPool
 	LastHash []byte
+	height   uint64
+	genesis  *types.Block
+	mu       sync.RWMutex
 }
 
 func NewBlockchain() (*Blockchain, error) {
@@ -18,24 +25,9 @@ func NewBlockchain() (*Blockchain, error) {
 	if err != nil {
 		return nil, err
 	}
-	bc := &Blockchain{DB: db}
-	// Load last hash immediately after DB connection
-	err = bc.DB.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte("lastHash"))
-		if err != nil {
-			return err
-		}
-		return item.Value(func(val []byte) error {
-			bc.LastHash = append([]byte{}, val...)
-			return nil
-		})
-	})
+	bc := &Blockchain{DB: db, State: state.NewState(db), Mempool: mempool.NewTxPool()}
 
-	if err == badger.ErrKeyNotFound {
-		if err := bc.initialize(); err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	if err := bc.initialize(); err != nil {
 		return nil, err
 	}
 
@@ -44,11 +36,19 @@ func NewBlockchain() (*Blockchain, error) {
 
 func (bc *Blockchain) initialize() error {
 	return bc.DB.Update(func(txn *badger.Txn) error {
-		genesis := createGenesisBlock()
-		if err := genesis.Validate(); err != nil {
-			return err
+		_, err := txn.Get([]byte("lastHash"))
+		if err == badger.ErrKeyNotFound {
+			return bc.createGenesisBlock()
 		}
+		return bc.loadChainState(txn)
+	})
+}
 
+func (bc *Blockchain) createGenesisBlock() error {
+	genesis := types.NewBlock(0, []*types.Transaction{}, []byte{}, "GENESIS")
+	genesis.Hash = genesis.CalculateHash()
+
+	return bc.DB.Update(func(txn *badger.Txn) error {
 		if err := txn.Set(genesis.Hash, genesis.Serialize()); err != nil {
 			return err
 		}
@@ -56,19 +56,29 @@ func (bc *Blockchain) initialize() error {
 			return err
 		}
 		bc.LastHash = genesis.Hash
+		bc.genesis = genesis
+		bc.height = 0
 		return nil
 	})
 }
 
-func createGenesisBlock() *types.Block {
-	genesis := &types.Block{
-		Index:     0,
-		Timestamp: time.Now().Unix(),
-		Data:      []byte("GENESIS BLOCK"),
-		PrevHash:  []byte{},
+func (bc *Blockchain) loadChainState(txn *badger.Txn) error {
+	item, err := txn.Get([]byte("lastHash"))
+	if err != nil {
+		return err
 	}
-	// Calculate hash for genesis block
-	genesis.Hash = genesis.CalculateHash()
-	return genesis
+	return item.Value(func(val []byte) error {
+		lastBlock, err := bc.GetBlock(val)
+		if err != nil {
+			return err
+		}
 
+		bc.mu.Lock()
+		defer bc.mu.Unlock()
+
+		bc.LastHash = lastBlock.Hash
+		bc.height = lastBlock.Header.Index
+		bc.genesis, _ = bc.GetGenesisBlock()
+		return nil
+	})
 }

@@ -1,34 +1,32 @@
 package blockchain
 
 import (
-	"fmt"
-
 	"github.com/karimseh/gochain/pkg/consensus"
+
 	"github.com/karimseh/gochain/pkg/types"
 )
 
-func (bc *Blockchain) MineBlock(data []byte) error {
-	lastBlock, err := bc.GetBlock(bc.LastHash)
-	if err != nil {
-		return err
-	}
+func (bc *Blockchain) MineBlock(miner string) error {
+	// Get transactions from mempool (excluding coinbase)
+	txs := bc.Mempool.GetTxs(50)
 
+	// Create coinbase transaction
+	coinbase := types.NewCoinbaseTx(miner)
+	txs = append([]*types.Transaction{coinbase}, txs...)
+
+	lastBlock := bc.GetLastBlock()
 	newBlock := types.NewBlock(
-		lastBlock.Index + 1,
-		data,
+		lastBlock.Header.Index+1,	
+		txs,
 		lastBlock.Hash,
-		consensus.TargetBits,
+		miner,
 	)
 
+	// Run Proof-of-Work
 	pow := consensus.NewProofOfWork(newBlock)
 	nonce, hash := pow.Run()
-	
-	newBlock.Nonce = nonce
+	newBlock.Header.Nonce = nonce
 	newBlock.Hash = hash
-
-	if err := newBlock.Validate(); err != nil {
-		return fmt.Errorf("mined block validation failed: %v", err)
-	}
 
 	return bc.AddBlock(newBlock)
 }
