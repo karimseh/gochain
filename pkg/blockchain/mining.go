@@ -16,7 +16,7 @@ func (bc *Blockchain) MineBlock(miner string) error {
 
 	lastBlock := bc.GetLastBlock()
 	newBlock := types.NewBlock(
-		lastBlock.Header.Index+1,	
+		lastBlock.Header.Index+1,
 		txs,
 		lastBlock.Hash,
 		miner,

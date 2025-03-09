@@ -105,14 +105,14 @@ func TestValidateTx(t *testing.T) {
 	t.Run("Invalid Nonce", func(t *testing.T) {
 		badTx := *tx
 		badTx.Nonce = 2
-		badTx.Sign(w)
+		_ = badTx.Sign(w)
 		assert.ErrorContains(t, s.ValidateTx(&badTx), "invalid nonce")
 	})
 
 	t.Run("Insufficient Balance", func(t *testing.T) {
 		badTx := *tx
 		badTx.Ammount = 200
-		badTx.Sign(w)
+		_ = badTx.Sign(w)
 		assert.ErrorContains(t, s.ValidateTx(&badTx), "insufficient balance")
 	})
 	t.Run("Invalid Hash", func(t *testing.T) {
@@ -233,10 +233,10 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("Zero Amount Transaction", func(t *testing.T) {
 		w := wallet.NewWallet()
-		s.SaveAccount(&types.Account{Address: w.Address, Balance: 100})
+		_ = s.SaveAccount(&types.Account{Address: w.Address, Balance: 100})
 
 		tx := types.NewTransaction(w.Address, "empty", 0, 1, crypto.PublicKeyToBytes(w.PublicKey))
-		tx.Sign(w)
+		_ = tx.Sign(w)
 
 		err := s.ApplyTx(tx)
 		assert.Error(t, err)

@@ -18,7 +18,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize blockchain: %v", err)
 	}
-	defer bc.CloseDB()
+	defer func() {
+		_ = bc.CloseDB()
+	}()
 
 	if len(os.Args) < 2 {
 		printUsage()

@@ -1,11 +1,21 @@
 #!/bin/sh
+set -e  # Exit immediately on error
 . "$(dirname "$0")/_/husky.sh"
 
-# Format Go files
-echo "Formatting Go files..."
-go fmt ./...  # This is the corrected line
-gofmt -w $(find . -name '*.go' -not -path './vendor/*' 2>/dev/null)
+echo "🔄 Formatting Go files..."
+go fmt ./...
+gofmt -w $(find . -name '*.go' -not -path './vendor/*' 2>/dev/null || true)
+
+echo "📦 Staging formatted files..."
 git add -u
-golangci-lint run ./... || exit 1
-gotestsum --format dots-v2 -- -cover -race -v ./... || exit 1
-go mod verify || exit 1
+
+echo "🧹 Linting..."
+golangci-lint run ./...
+
+echo "🧪 Testing with race detector..."
+gotestsum --format dots-v2 -- -cover -race -v ./...
+
+echo "🔒 Verifying modules..."
+go mod verify
+
+echo "✅ All pre-commit checks passed!"

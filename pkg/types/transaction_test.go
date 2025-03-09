@@ -31,7 +31,7 @@ func TestTrabsaction_SignAndVerify(t *testing.T) {
 
 	t.Run("Wrong pk", func(t *testing.T) {
 		tx := types.NewTransaction(w.Address, "to", 10, 0, []byte("wrong"))
-		tx.Sign(w)
+		_ = tx.Sign(w)
 		assert.False(t, tx.Verify())
 	})
 }

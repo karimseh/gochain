@@ -32,7 +32,7 @@ func TestTxPool_AddTx(t *testing.T) {
 
 	t.Run("Duplicate Transaction", func(t *testing.T) {
 		tx := newValidTx()
-		pool.AddTx(tx)
+		_ = pool.AddTx(tx)
 		err := pool.AddTx(tx)
 		assert.ErrorContains(t, err, "already exists")
 	})
@@ -115,7 +115,7 @@ func TestTxPool_Concurrency(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			tx := newValidTx()
-			pool.AddTx(tx)
+			_ = pool.AddTx(tx)
 			pool.GetTxs(1)
 			pool.PendingCount()
 			pool.RemoveTxs([]*types.Transaction{tx})

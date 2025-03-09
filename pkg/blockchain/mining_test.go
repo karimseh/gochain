@@ -17,7 +17,7 @@ func setupBlockchain(t *testing.T) (*blockchain.Blockchain, func()) {
 	require.NoError(t, err)
 
 	return bc, func() {
-		bc.CloseDB()
+		_ = bc.CloseDB()
 	}
 }
 

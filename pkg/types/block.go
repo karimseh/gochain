@@ -45,15 +45,15 @@ func NewBlock(index uint64, transactions []*Transaction, parentHash []byte, mine
 }
 
 func (b *Block) SetNonce(nonce uint64) {
-    b.mu.Lock()
-    defer b.mu.Unlock()
-    b.Header.Nonce = nonce
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.Header.Nonce = nonce
 }
 
 func (b *Block) GetDifficulty() int {
-    b.mu.RLock()
-    defer b.mu.RUnlock()
-    return b.Header.Difficulty
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return b.Header.Difficulty
 }
 func (b *Block) SetDifficulty(diff int) {
 	b.mu.Lock()
@@ -63,7 +63,7 @@ func (b *Block) SetDifficulty(diff int) {
 
 func (b *Block) Validate() error {
 	b.mu.RLock()
-    defer b.mu.RUnlock()
+	defer b.mu.RUnlock()
 	// Temporary clear existing hash for validation
 	storedHash := b.Hash
 	b.Hash = nil
