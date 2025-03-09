@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Format Go files
+echo "Formatting Go files..."
+go fmt ./...  # This is the corrected line
+gofmt -w $(find . -name '*.go' -not -path './vendor/*' 2>/dev/null)
+git add -u
+golangci-lint run ./... || exit 1
+gotestsum --format dots-v2 -- -cover -race -v ./... || exit 1
+go mod verify || exit 1
