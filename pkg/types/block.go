@@ -94,7 +94,7 @@ func (b *Block) Validate() error {
 	if b.Header.ParentHash == nil {
 		return fmt.Errorf("invalid parent hash")
 	}
-	if b.MerkleRoot == nil {
+	if b.MerkleRoot == nil || !VerifyMerkleRoot(b.Transactions, b.MerkleRoot) {
 		return fmt.Errorf("invalid merkle root")
 	}
 
@@ -114,6 +114,10 @@ func CalculateMerkleRoot(txs []*Transaction) []byte {
 		hashes = append(hashes, tx.Hash)
 	}
 	return crypto.BuildMerkleRoot(hashes)
+}
+
+func VerifyMerkleRoot(txs []*Transaction, root []byte) bool {
+	return bytes.Equal(CalculateMerkleRoot(txs), root)
 }
 
 func (b *Block) Serialize() []byte {

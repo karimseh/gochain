@@ -29,6 +29,3 @@ func dbPath() string {
 func (bc *Blockchain) CloseDB() error {
 	return bc.DB.Close()
 }
-func (bc *Blockchain) Remove() {
-	os.RemoveAll(dbPath())
-}

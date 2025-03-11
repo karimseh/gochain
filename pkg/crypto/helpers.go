@@ -59,19 +59,6 @@ func BuildMerkleRoot(hashes [][]byte) []byte {
 	return level[0]
 }
 
-// Verify if tx is included
-func VerifyMerkleRoot(leaf []byte, proof [][]byte, root []byte) bool {
-	current := leaf
-	for _, p := range proof {
-		if bytes.Compare(current, p) < 0 {
-			current = HashData(current, p)
-		} else {
-			current = HashData(p, current)
-		}
-	}
-	return bytes.Equal(current, root)
-}
-
 func PublicKeyToBytes(pub *ecdsa.PublicKey) []byte {
 	return append(pub.X.Bytes(), pub.Y.Bytes()...)
 }
