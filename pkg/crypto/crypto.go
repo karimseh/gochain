@@ -22,8 +22,12 @@ func HashData(data ...[]byte) []byte {
 		hasher.Write(length)
 		hasher.Write(d)
 	}
+	firstHash := hasher.Sum(nil)
 
-	return hasher.Sum(nil)
+	hasher2 := sha256.New()
+	hasher2.Write(firstHash)
+	return hasher2.Sum(nil)
+
 }
 
 func SignData(data []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
