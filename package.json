@@ -1,0 +1,28 @@
+{
+  "name": "gochain",
+  "version": "1.0.0",
+  "description": "A minimal blockchain implementation in Go with P2P networking and Proof-of-Work consensus.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karimseh/gochain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/karimseh/gochain/issues"
+  },
+  "homepage": "https://github.com/karimseh/gochain#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "husky": "^9.1.7"
+  }
+}

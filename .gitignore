@@ -11,7 +11,6 @@
 # Node.js (remove if unused)
 node_modules/
 package-lock.json
-package.json
 
 # Logs/Env
 *.log
